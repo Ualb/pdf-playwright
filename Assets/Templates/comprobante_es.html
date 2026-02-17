@@ -1,0 +1,282 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo Banco LAFISE</title>
+    <style>
+        :root {
+            --primary-green: #006847; /* Color aproximado Lafise */
+            --bg-color: #f4f6f8;
+            --text-dark: #333333;
+            --text-gray: #666666;
+            --border-radius: 12px;
+        }
+
+        /* 1. Cambia el body para que no fuerce altura completa en PDF */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff; /* Blanco para el PDF */
+            margin: 0;
+            padding: 0; /* Quitamos padding del body */
+            display: block; /* Quitamos el flex para evitar errores de cálculo */
+        }
+
+        /* 2. Ajusta el contenedor para que no sea tan ancho y quepa en una A4 */
+        .receipt-container {
+            background-color: #ffffff;
+            width: 95%; /* Un poco menos del 100% */
+            max-width: 800px; /* Reducido de 900 para asegurar que entre en el ancho de hoja */
+            margin: 20px auto; /* Centrado simple */
+            padding: 30px;
+            border: 1px solid #eee; /* Un borde sutil para que se note el límite */
+            border-radius: var(--border-radius);
+            box-shadow: none; /* Las sombras a veces ensucian el PDF */
+        }
+
+        /* 3. Evita que el navegador agregue páginas por elementos que sobresalen */
+        @media print {
+            html, body {
+                height: auto;
+                overflow: hidden; /* Evita scrolls fantasma que crean hojas extra */
+            }
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Simulación del icono del logo */
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary-green);
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .receipt-meta {
+            text-align: right;
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .receipt-meta strong {
+            display: block;
+            color: var(--text-dark);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        /* Status Section */
+        .status-section {
+            margin-bottom: 20px;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .check-icon {
+            background-color: var(--primary-green);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .status-text h2 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--primary-green);
+        }
+
+        .status-text p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* Amount */
+        .amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin: 20px 0 40px 0;
+        }
+
+        /* Details Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .icon-placeholder {
+            color: var(--primary-green);
+            margin-bottom: 5px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: var(--text-gray);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Footer Box */
+        .footer-note {
+            background-color: #f8fcfb; /* Verde muy pálido/gris */
+            border: 1px solid #e0eadd;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .footer-note h4 {
+            margin: 0 0 8px 0;
+            color: var(--text-dark);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-note p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        /* SVG Icons Inline */
+        svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .receipt-container {
+            width: 750px;
+            margin: 30px auto;
+        }
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="receipt-container">
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            LAFISE
+        </div>
+        <div class="receipt-meta">
+            <strong>Recibo</strong>
+            {{Fecha}}
+        </div>
+    </div>
+
+    <div class="status-section">
+        <div class="status-header">
+            <div class="check-icon">✓</div>
+            <div class="status-text">
+                <h2>Transferencia exitosa</h2>
+                <p>(A otros bancos)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="amount">
+        {{Monto}}
+    </div>
+
+    <div class="details-grid">
+        <div class="detail-item">
+            <div class="icon-placeholder">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21v-7m8 7v-7m6 7v-7M4 10h16v-2H4zm8-7L2 8h20z"/></svg>
+            </div>
+            <span class="detail-label">Cuenta origen - Banco X</span>
+            <span class="detail-value">
+                    {{Origen}}
+                </span>
+        </div>
+
+        <div class="detail-item">
+            <div class="icon-placeholder">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21v-7m8 7v-7m6 7v-7M4 10h16v-2H4zm8-7L2 8h20z"/></svg>
+            </div>
+            <span class="detail-label">Cuenta destino - BAC</span>
+            <span class="detail-value">
+                {{Destino}}    
+                </span>
+        </div>
+
+        <div class="detail-item">
+            <div class="icon-placeholder">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <span class="detail-label">N° de referencia</span>
+            <span class="detail-value">{{Referencia}}</span>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <h4>
+            <svg viewBox="0 0 24 24" style="width:16px; height:16px;"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
+            En crédito de:
+        </h4>
+        <p>Cancelación de factura para Flor de Caña con texto adicional de valoración y ampliado UX</p>
+    </div>
+</div>
+
+</body>
+</html>

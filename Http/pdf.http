@@ -1,0 +1,4 @@
+﻿### Generar PDF
+POST http://localhost:5261/api/pdf/generate
+Content-Type: application/json
+ 
